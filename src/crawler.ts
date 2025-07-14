@@ -2,14 +2,14 @@ import { EventEmitter } from 'node:events';
 import type * as http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import process from 'node:process';
-import { getLinks } from './links.js';
+import { getLinks } from './links.ts';
 import {
 	type CheckOptions,
 	type InternalCheckOptions,
 	processOptions,
-} from './options.js';
-import { Queue } from './queue.js';
-import { startWebServer } from './server.js';
+} from './options.ts';
+import { Queue } from './queue.ts';
+import { startWebServer } from './server.ts';
 import {
 	type CrawlResult,
 	type ElementMetadata,
@@ -20,8 +20,8 @@ import {
 	type RetryErrorInfo,
 	type RetryInfo,
 	type RetryNoHeaderInfo,
-} from './types.js';
-import { createFetchOptions, isCSS, isHtml, mapUrl } from './utils.js';
+} from './types.ts';
+import { createFetchOptions, isCSS, isHtml, mapUrl } from './utils.ts';
 
 export type CrawlOptions = {
 	url: URL;
@@ -194,11 +194,11 @@ export class LinkChecker extends EventEmitter {
 
 	// Perform fetch, handle retry on 429, collect failures
 	private async requestWithRetry(opts: CrawlOptions): Promise<{
-		response?: Response;
+		response: Response | null;
 		failures: FailureDetails[];
-		willBeRetried?: boolean;
+		willBeRetried: boolean;
 	}> {
-		let response: Response | undefined;
+		let response: Response | null = null;
 		const failures: FailureDetails[] = [];
 		const fetchOptions = createFetchOptions(opts);
 
@@ -208,7 +208,7 @@ export class LinkChecker extends EventEmitter {
 				...fetchOptions,
 			});
 			if (this.shouldRetryAfter(response, opts)) {
-				return { response: undefined, failures, willBeRetried: true };
+				return { response: null, failures, willBeRetried: true };
 			}
 			if (response.status === 405) {
 				response = await fetch(opts.url.href, {
@@ -216,7 +216,7 @@ export class LinkChecker extends EventEmitter {
 					...fetchOptions,
 				});
 				if (this.shouldRetryAfter(response, opts)) {
-					return { response: undefined, failures, willBeRetried: true };
+					return { response: null, failures, willBeRetried: true };
 				}
 			}
 		} catch (error) {
@@ -241,7 +241,7 @@ export class LinkChecker extends EventEmitter {
 					...fetchOptions,
 				});
 				if (this.shouldRetryAfter(response, opts)) {
-					return { response: undefined, failures, willBeRetried: true };
+					return { response: null, failures, willBeRetried: true };
 				}
 			}
 		} catch (error) {
@@ -262,7 +262,7 @@ export class LinkChecker extends EventEmitter {
 			});
 		}
 
-		return { response, failures };
+		return { response, failures, willBeRetried: false };
 	}
 
 	// Helper to emit and record link results
@@ -420,7 +420,7 @@ export class LinkChecker extends EventEmitter {
 	 */
 	private async maybeRecurse(
 		options: CrawlOptions,
-		response: Response | undefined,
+		response: Response | null,
 	): Promise<void> {
 		if (!options.crawl || !response) {
 			return;
