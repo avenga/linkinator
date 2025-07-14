@@ -20,7 +20,8 @@
 		"test": "vitest",
 		"fix": "biome check --write .",
 		"lint": "biome check .",
-		"docs-test": "node build/src/cli.js ./README.md"
+		"docs-test": "node build/src/cli.js ./README.md",
+		"start": "node --experimental-transform-types src/cli.ts"
 	},
 	"dependencies": {
 		"chalk": "^5.0.0",

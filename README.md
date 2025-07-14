@@ -18,11 +18,20 @@ Behold my latest inator! The `linkinator` provides an API and CLI for crawling w
 
 ## Installation
 
+Install and run npm packages:
+
 ```sh
 npm install @avenga/linkinator
+npm start -- https://example.com
 ```
 
-Not into the whole node.js or npm thing?  You can also download a standalone binary that bundles node, linkinator, and anything else you need.  See [releases](https://github.com/avenga/linkinator/releases).
+You can also use the package directly with npx:
+
+```sh
+npx @avenga/linkinator https://example.com
+```
+
+You can also download the source code here: [releases](https://github.com/avenga/linkinator/releases).
 
 ## Command Usage
 
@@ -115,49 +124,49 @@ $ linkinator LOCATIONS [ --arguments ]
 You can run a shallow scan of a website for busted links:
 
 ```sh
-npx linkinator https://jbeckwith.com
+npx @avenga/linkinator https://example.com
 ```
 
 That was fun.  What about local files?  The linkinator will stand up a static web server for yinz:
 
 ```sh
-npx linkinator ./docs
+npx @avenga/linkinator ./docs
 ```
 
 But that only gets the top level of links.  Lets go deeper and do a full recursive scan!
 
 ```sh
-npx linkinator ./docs --recurse
+npx @avenga/linkinator ./docs --recurse
 ```
 
 Aw, snap.  I didn't want that to check *those* links.  Let's skip em:
 
 ```sh
-npx linkinator ./docs --skip www.googleapis.com
+npx @avenga/linkinator ./docs --skip www.googleapis.com
 ```
 
 The `--skip` parameter will accept any regex! You can do more complex matching, or even tell it to only scan links with a given domain:
 
 ```sh
-npx linkinator http://jbeckwith.com --skip '^(?!http://jbeckwith.com)'
+npx @avenga/linkinator https://example.com --skip '^(?!https://example.com)'
 ```
 
 Maybe you're going to pipe the output to another program.  Use the `--format` option to get JSON or CSV!
 
 ```sh
-npx linkinator ./docs --format CSV
+npx @avenga/linkinator ./docs --format CSV
 ```
 
 Let's make sure the `README.md` in our repo doesn't have any busted links:
 
 ```sh
-npx linkinator ./README.md --markdown
+npx @avenga/linkinator ./README.md --markdown
 ```
 
 You know what, we better check all of the markdown files!
 
 ```sh
-npx linkinator "**/*.md" --markdown
+npx @avenga/linkinator "**/*.md" --markdown
 ```
 
 ### Configuration file
@@ -195,7 +204,7 @@ All options are optional. It should look like this:
 To load config settings outside the CWD, you can pass the `--config` flag to the `linkinator` CLI:
 
 ```sh
-npx linkinator --config /some/path/your-config.json
+npx @avenga/linkinator --config /some/path/your-config.json
 ```
 
 ## API Usage
@@ -305,7 +314,7 @@ async function complex() {
     // port: 8673,
     // recurse: true,
     // linksToSkip: [
-    //   'https://jbeckwith.com/some/link',
+    //   'https://example.com/some/link',
     //   'http://example.com'
     // ]
   });
@@ -335,7 +344,7 @@ This library supports proxies via the `HTTP_PROXY` and `HTTPS_PROXY` environment
 You may have noticed in the example, when using a glob the pattern is encapsulated in quotes:
 
 ```sh
-npx linkinator "**/*.md" --markdown
+npx @avenga/linkinator "**/*.md" --markdown
 ```
 
 Without the quotes, some shells will attempt to expand the glob paths on their own.  Various shells (bash, zsh) have different, somewhat unpredictable behaviors when left to their own devices.  Using the quotes ensures consistent, predictable behavior by letting the library expand the pattern.
@@ -345,7 +354,7 @@ Without the quotes, some shells will attempt to expand the glob paths on their o
 Oftentimes when a link fails, it's an easy to spot typo, or a clear 404.  Other times ... you may need more details on exactly what went wrong.  To see a full call stack for the HTTP request failure, use `--verbosity DEBUG`:
 
 ```sh
-npx linkinator https://jbeckwith.com --verbosity DEBUG
+npx @avenga/linkinator https://example.com --verbosity DEBUG
 ```
 
 ### Controlling Output
@@ -353,7 +362,7 @@ npx linkinator https://jbeckwith.com --verbosity DEBUG
 The `--verbosity` flag offers preset options for controlling the output, but you may want more control.  Using [`jq`](https://stedolan.github.io/jq/) and `--format JSON` - you can do just that!
 
 ```sh
-npx linkinator https://jbeckwith.com --verbosity DEBUG --format JSON | jq '.links | .[] | select(.state | contains("BROKEN"))'
+npx @avenga/linkinator https://example.com --verbosity DEBUG --format JSON | jq '.links | .[] | select(.state | contains("BROKEN"))'
 ```
 
 ## License

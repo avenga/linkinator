@@ -3,11 +3,11 @@
 import process from 'node:process';
 import chalk from 'chalk';
 import meow from 'meow';
-import { type Flags, getConfig } from './config.js';
-import { LinkChecker } from './index.js';
-import { Format, LogLevel, Logger } from './logger.js';
-import type { CheckOptions } from './options.js';
-import { type LinkResult, LinkState, type RetryInfo } from './types.js';
+import { type Flags, getConfig } from './config.ts';
+import { LinkChecker } from './index.ts';
+import { Format, LogLevel, Logger } from './logger.ts';
+import type { CheckOptions } from './options.ts';
+import { type LinkResult, LinkState, type RetryInfo } from './types.ts';
 
 const cli = meow(
 	`
