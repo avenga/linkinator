@@ -1,11 +1,11 @@
-export { getConfig } from './config.js';
-export { check } from './utils.js';
+export { getConfig } from './config.ts';
+export { check } from './utils.ts';
 export {
 	LinkState,
-	RetryInfo,
-	FailureDetails,
-	LinkResult,
-	CrawlResult,
-} from './types.js';
-export type { CheckOptions } from './options.js';
-export { LinkChecker } from './crawler.js';
+	type RetryInfo,
+	type FailureDetails,
+	type LinkResult,
+	type CrawlResult,
+} from './types.ts';
+export type { CheckOptions } from './options.ts';
+export { LinkChecker } from './crawler.ts';

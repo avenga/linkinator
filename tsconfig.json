@@ -1,13 +1,15 @@
 {
 	"compilerOptions": {
 		"strict": true,
-		"target": "ES2022",
+		"target": "esnext",
+		"module": "nodenext",
 		"declaration": true,
 		"rootDir": ".",
 		"outDir": "build",
-		"module": "Node16",
 		"moduleResolution": "Node16",
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"rewriteRelativeImportExtensions": true,
+		"verbatimModuleSyntax": true
 	},
 	"include": ["src/*.ts", "test/*.ts"]
 }

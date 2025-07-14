@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { assert, describe, expect, it } from 'vitest';
-import { type Flags, getConfig } from '../src/config.js';
+import { type Flags, getConfig } from '../src/config.ts';
 
 describe('config', () => {
 	it('should allow passing no config', async () => {

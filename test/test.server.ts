@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { assert, afterAll, beforeAll, describe, it } from 'vitest';
-import { startWebServer } from '../src/server.js';
+import { startWebServer } from '../src/server.ts';
 
 describe('server', () => {
 	let server: Server;
