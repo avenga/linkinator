@@ -1,8 +1,8 @@
 import { Stream } from 'node:stream';
 import { WritableStream } from 'htmlparser2/WritableStream';
 import { parseSrcset } from 'srcset';
-import type { ElementMetadata } from './types.js';
-import { isCSS } from './utils.js';
+import type { ElementMetadata } from './types.ts';
+import { isCSS } from './utils.ts';
 
 type TagConfig = {
 	// Element attributes that can contain URLs

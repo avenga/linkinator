@@ -8,8 +8,8 @@ import {
 	LinkState,
 	check,
 } from '../src/index.js';
-import { DEFAULT_USER_AGENT } from '../src/options.js';
-import { invertedPromise } from './utils.js';
+import { DEFAULT_USER_AGENT } from '../src/options.ts';
+import { invertedPromise } from './utils.ts';
 
 nock.disableNetConnect();
 nock.enableNetConnect('localhost');

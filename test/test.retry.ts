@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { assert, afterEach, describe, it, vi } from 'vitest';
-import { LinkChecker, check } from '../src/index.js';
-import { invertedPromise } from './utils.js';
+import { LinkChecker, check } from '../src/index.ts';
+import { invertedPromise } from './utils.ts';
 
 nock.disableNetConnect();
 nock.enableNetConnect('localhost');

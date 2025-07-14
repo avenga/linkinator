@@ -1,6 +1,6 @@
 import * as path from 'node:path';
-import { type CrawlOptions, LinkChecker } from './crawler.js';
-import type { CheckOptions, InternalCheckOptions } from './options.js';
+import { type CrawlOptions, LinkChecker } from './crawler.ts';
+import type { CheckOptions, InternalCheckOptions } from './options.ts';
 
 /**
  * Convenience method to perform a scan.
