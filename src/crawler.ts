@@ -21,7 +21,7 @@ import {
 	type RetryInfo,
 	type RetryNoHeaderInfo,
 } from './types.js';
-import { createFetchOptions, isHtml, mapUrl } from './utils.js';
+import { createFetchOptions, isCSS, isHtml, mapUrl } from './utils.js';
 
 export type CrawlOptions = {
 	url: URL;
@@ -422,15 +422,18 @@ export class LinkChecker extends EventEmitter {
 		options: CrawlOptions,
 		response: Response | undefined,
 	): Promise<void> {
-		if (!options.crawl || !response || !isHtml(response)) {
+		if (!options.crawl || !response) {
+			return;
+		}
+		if (!isHtml(response) && !isCSS(response)) {
 			return;
 		}
 
 		// If we need to go deeper, scan the next level of depth for links and crawl
 		this.emit('pagestart', options.url);
-		const urlResults = response?.body
-			? await getLinks(response.body, options.url.href)
-			: [];
+
+		const urlResults = await getLinks(response, options.url.href);
+
 		for (const result of urlResults) {
 			// If there was some sort of problem parsing the link while
 			// creating a new URL obj, treat it as a broken link.

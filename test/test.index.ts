@@ -28,6 +28,15 @@ describe('linkinator', () => {
 		scope.done();
 	});
 
+	it('should handle CSS links', async () => {
+		const results = await check({
+			path: 'test/fixtures/css',
+			recurse: true,
+		});
+		console.log(results.links);
+		assert.strictEqual(results.links.length, 5);
+	});
+
 	it('should only try a link once', async () => {
 		const scope = nock('http://example.invalid').head('/').reply(200);
 		const results = await check({ path: 'test/fixtures/twice' });

@@ -2,6 +2,7 @@ import { Stream } from 'node:stream';
 import { WritableStream } from 'htmlparser2/WritableStream';
 import { parseSrcset } from 'srcset';
 import type { ElementMetadata } from './types.js';
+import { isCSS } from './utils.js';
 
 type TagConfig = {
 	// Element attributes that can contain URLs
@@ -48,11 +49,55 @@ export type ParsedUrl = {
 };
 
 export async function getLinks(
-	source: ReadableStream,
+	response: Response,
 	baseUrl: string,
 ): Promise<ParsedUrl[]> {
+	let source: ReadableStream;
 	let realBaseUrl = baseUrl;
 	let baseSet = false;
+
+	if (!response.body) {
+		return [];
+	}
+
+	source = response.body;
+
+	if (isCSS(response)) {
+		const reader = source.getReader();
+		const decoder = new TextDecoder('utf-8');
+
+		const links: ParsedUrl[] = [];
+		let buffer = '';
+
+		// RegEx: Images, fonts etc.
+		const urlRegex = /url\((["']?)([^"')]+)\1\)/gi;
+
+		// RegEx: CSS inports
+		const importRegex = /@import\s+(?:url\()?["']([^"')]+)["']\)?/gi;
+
+		while (true) {
+			const { value, done } = await reader.read();
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+
+			// Truncate buffer to last 50 lines
+			const lines = buffer.split('\n');
+			if (lines.length > 100) {
+				buffer = lines.slice(-50).join('\n');
+			}
+
+			for (const match of buffer.matchAll(urlRegex)) {
+				if (match[2]) links.push(parseLink(match[2], realBaseUrl));
+			}
+
+			for (const match of buffer.matchAll(importRegex)) {
+				if (match[1]) links.push(parseLink(match[1], realBaseUrl));
+			}
+		}
+
+		return links;
+	}
 
 	// Tracks all currently open tags that have text to be captured
 	let activeTextCapture: { tag: string; parsed: ParsedUrl }[] = [];
