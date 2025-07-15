@@ -33,7 +33,6 @@ describe('linkinator', () => {
 			path: 'test/fixtures/css',
 			recurse: true,
 		});
-		console.log(results.links);
 		assert.strictEqual(results.links.length, 5);
 	});
 
