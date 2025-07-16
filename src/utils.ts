@@ -26,6 +26,16 @@ export function isHtml(response: Response): boolean {
 }
 
 /**
+ * Checks to see if a given source is CSS.
+ * @param {object} response Page response.
+ * @returns {boolean}
+ */
+export function isCSS(response: Response): boolean {
+	const contentType = response.headers.get('content-type') ?? '';
+	return Boolean(/text\/css/g.test(contentType));
+}
+
+/**
  * When running a local static web server for the user, translate paths from
  * the Url generated back to something closer to a local filesystem path.
  * @example

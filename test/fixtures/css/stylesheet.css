@@ -1,0 +1,11 @@
+@import 'reset.css';
+
+body {
+  background: url('images/bg.jpg');
+  font-family: 'Open Sans', sans-serif;
+}
+
+@font-face {
+  font-family: 'MyFont';
+  src: url('fonts/myfont.woff2') format('woff2');
+}
