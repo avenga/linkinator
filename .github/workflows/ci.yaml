@@ -70,9 +70,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: oven-sh/setup-bun@v2
+      # Uses commit SHA of main branch because reading bun version from
+      # `engines` field is not yet included in a release.
+      - uses: oven-sh/setup-bun@22457c87c1b161cf7dde222c3e82b2b5f8d2bed2
         with:
-          bun-version: 1.2.20
+          bun-version-file: package.json
       - name: Build binaries using bun
         run: |
           mkdir -p build/binaries
