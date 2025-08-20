@@ -18,18 +18,75 @@ Behold my latest inator! The `linkinator` provides an API and CLI for crawling w
 
 ## Installation
 
-Install and run npm packages:
+### npm package
+
+Install and run as npm package:
 
 ```sh
 npm install @avenga/linkinator
-npm start -- https://example.com
 ```
+
+Take a look at the [example code](./samples/api.js) to learn how to use the library.
+
+### Using directly with `npx`
 
 You can also use the package directly with npx:
 
 ```sh
 npx @avenga/linkinator https://example.com
 ```
+
+### Binary download
+
+Binaries are created on release using [`bun build --compile`](https://bun.com/docs/bundler/executables). Download them from the [latest release](https://github.com/avenga/linkinator/releases/latest) or use the following links.
+
+#### Linux
+
+[Linux x64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-linux-x64)
+
+[Linux arm64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-linux-arm64)
+
+The binary needs to be marked as executable.
+
+```sh
+# arm64
+wget -O linkinator https://github.com/avenga/linkinator/releases/latest/download/linkinator-linux-arm64
+# x64
+wget -O linkinator https://github.com/avenga/linkinator/releases/latest/download/linkinator-linux-x64
+
+chmod +x linkinator
+./linkinator --help
+```
+
+#### macOS
+
+[macOS x64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-darwin-x64)
+
+[macOS arm64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-darwin-arm64)
+
+The binary needs to be marked as executable. Also, there might be a quarantine attribute applied automatically because the binary is unsigned, which needs to be removed.
+
+```sh
+# x64
+wget -O linkinator https://github.com/avenga/linkinator/releases/latest/download/linkinator-darwin-x64
+# arm64 (Apple silicon)
+wget -O linkinator https://github.com/avenga/linkinator/releases/latest/download/linkinator-darwin-arm64
+
+chmod +x linkinator
+./linkinator --help
+```
+
+If you see an error when executing (file damaged, invalid signature or similar), there might be a quarantine attribute applied automatically because the binary is unsigned, which needs to be removed.
+
+```sh
+xattr -d com.apple.quarantine linkinator
+```
+
+#### Windows
+
+[Windows x64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-windows-x64.exe)
+
+### Source Code
 
 You can also download the source code here: [releases](https://github.com/avenga/linkinator/releases).
 
