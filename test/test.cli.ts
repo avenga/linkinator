@@ -51,7 +51,7 @@ describe('cli', () => {
 		const response = await execa(node, [linkinator], {
 			reject: false,
 		});
-		assert.match(response.stdout, /\$ linkinator LOCATION \[ --arguments ]/);
+		assert.match(response.stderr, /Usage: .+ LOCATION \[options\]/);
 	});
 
 	it('should flag skipped links', async () => {
@@ -194,12 +194,12 @@ describe('cli', () => {
 	it('should throw on invalid verbosity', async () => {
 		const response = await execa(
 			node,
-			[linkinator, './README.md', '--VERBOSITY', 'LOL'],
+			[linkinator, './README.md', '--verbosity', 'LOL'],
 			{
 				reject: false,
 			},
 		);
-		assert.match(response.stderr, /VERBOSITY must be/);
+		assert.match(response.stderr, /Invalid values:\n\s*Argument: verbosity/);
 	});
 
 	it('should throw when verbosity and silent are flagged', async () => {
@@ -210,7 +210,10 @@ describe('cli', () => {
 				reject: false,
 			},
 		);
-		assert.match(response.stderr, /The SILENT and VERBOSITY flags/);
+		assert.match(
+			response.stderr,
+			/Arguments verbosity and silent are mutually exclusive/,
+		);
 	});
 
 	it('should show no output for verbosity=NONE', async () => {
@@ -257,7 +260,7 @@ describe('cli', () => {
 			},
 		);
 		assert.strictEqual(response.exitCode, 1);
-		assert.match(response.stderr, /flag must be used/);
+		assert.match(response.stderr, /Missing dependent arguments/);
 	});
 
 	it('should fail if a url replacement is provided without a search', async () => {
@@ -269,7 +272,7 @@ describe('cli', () => {
 			},
 		);
 		assert.strictEqual(response.exitCode, 1);
-		assert.match(response.stderr, /flag must be used/);
+		assert.match(response.stderr, /Missing dependent arguments/);
 	});
 
 	it('should respect url rewrites', async () => {
