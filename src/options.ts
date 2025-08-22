@@ -3,19 +3,12 @@ import path from 'node:path';
 import process from 'node:process';
 import { glob } from 'glob';
 
-export type UrlRewriteExpression = {
-	pattern: RegExp;
-	replacement: string;
-};
-
-export type CheckOptions = {
+// Options used for CLI, config file and API
+export type SharedOptions = {
 	concurrency?: number;
-	port?: number;
-	path: string | string[];
 	recurse?: boolean;
 	timeout?: number;
 	markdown?: boolean;
-	linksToSkip?: string[] | ((link: string) => Promise<boolean>);
 	serverRoot?: string;
 	directoryListing?: boolean;
 	retry?: boolean;
@@ -25,9 +18,20 @@ export type CheckOptions = {
 	retryErrors?: boolean;
 	retryErrorsCount?: number;
 	retryErrorsJitter?: number;
-	urlRewriteExpressions?: UrlRewriteExpression[];
-	userAgent?: string;
 	extraHeaders?: { [key: string]: string };
+	userAgent?: string;
+};
+
+export type UrlRewriteExpression = {
+	pattern: RegExp;
+	replacement: string;
+};
+
+export type CheckOptions = SharedOptions & {
+	path: string | string[];
+	port?: number;
+	linksToSkip?: string[] | ((link: string) => Promise<boolean>);
+	urlRewriteExpressions?: UrlRewriteExpression[];
 };
 
 export type InternalCheckOptions = {

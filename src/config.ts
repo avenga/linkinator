@@ -1,29 +1,17 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import type { SharedOptions } from './options.ts';
 
-export type Flags = {
-	concurrency?: number;
+// All flags that can be set using CLI or config file
+export type Flags = SharedOptions & {
 	config?: string;
-	recurse?: boolean;
 	skip?: string | string[];
 	format?: string;
 	silent?: boolean;
 	verbosity?: string;
-	timeout?: number;
-	markdown?: boolean;
-	serverRoot?: string;
-	directoryListing?: boolean;
-	retry?: boolean;
-	retryNoHeader?: boolean;
-	retryNoHeaderCount?: number;
-	retryNoHeaderDelay?: number;
-	retryErrors?: boolean;
-	retryErrorsCount?: number;
-	retryErrorsJitter?: number;
 	urlRewriteSearch?: string;
 	urlRewriteReplace?: string;
-	extraHeaders?: { [key: string]: string };
 };
 
 const validConfigExtensions = ['.js', '.mjs', '.cjs', '.json'];
