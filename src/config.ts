@@ -26,20 +26,9 @@ export async function getConfig(flags: Flags) {
 		config = (await tryGetDefaultConfig()) || {};
 	}
 
-	// `meow` is set up to pass boolean flags as `undefined` if not passed.
-	// copy the struct, and delete properties that are `undefined` so the merge
-	// doesn't blast away config level settings.
-	const strippedFlags = { ...flags };
-	for (const [key, value] of Object.entries(strippedFlags)) {
-		if (value === undefined || (Array.isArray(value) && value.length === 0)) {
-			delete (strippedFlags as Record<string, Record<string, unknown>>)[key];
-		}
-	}
-
 	// Combine the flags passed on the CLI with the flags in the config file,
 	// with CLI flags getting precedence
-	config = { ...config, ...strippedFlags };
-	return config;
+	return { ...config, ...flags };
 }
 
 /**

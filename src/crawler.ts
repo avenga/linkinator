@@ -32,7 +32,7 @@ export type CrawlOptions = {
 	delayCache: Map<string, number>;
 	retryErrorsCache: Map<string, number>;
 	retryNoHeaderCache: Map<string, number>;
-	checkOptions: CheckOptions;
+	checkOptions: InternalCheckOptions;
 	queue: Queue;
 	rootPath: string;
 	retry: boolean;
@@ -77,7 +77,7 @@ export class LinkChecker extends EventEmitter {
 		}
 
 		const queue = new Queue({
-			concurrency: options.concurrency || 100,
+			concurrency: options.concurrency,
 		});
 
 		const results = new Array<LinkResult>();
@@ -101,14 +101,14 @@ export class LinkChecker extends EventEmitter {
 					retryNoHeaderCache,
 					queue,
 					rootPath: path,
-					retry: Boolean(options_.retry),
-					retryNoHeader: Boolean(options_.retryNoHeader),
-					retryNoHeaderCount: options_.retryNoHeaderCount ?? -1,
-					retryNoHeaderDelay: options_.retryNoHeaderDelay ?? 30 * 60 * 1000,
-					retryErrors: Boolean(options_.retryErrors),
-					retryErrorsCount: options_.retryErrorsCount ?? 5,
-					retryErrorsJitter: options_.retryErrorsJitter ?? 3000,
-					extraHeaders: options.extraHeaders ?? {},
+					retry: options.retry,
+					retryNoHeader: options.retryNoHeader,
+					retryNoHeaderCount: options.retryNoHeaderCount,
+					retryNoHeaderDelay: options.retryNoHeaderDelay,
+					retryErrors: options.retryErrors,
+					retryErrorsCount: options.retryErrorsCount,
+					retryErrorsJitter: options.retryErrorsJitter,
+					extraHeaders: options.extraHeaders,
 				});
 			});
 		}

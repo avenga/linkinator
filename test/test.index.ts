@@ -8,7 +8,7 @@ import {
 	LinkState,
 	check,
 } from '../src/index.js';
-import { DEFAULT_USER_AGENT } from '../src/options.ts';
+import { DEFAULT_OPTIONS } from '../src/options.ts';
 import { invertedPromise } from './utils.ts';
 
 nock.disableNetConnect();
@@ -455,14 +455,14 @@ describe('linkinator', () => {
 		const scopes = [
 			nock('http://example.invalid')
 				.get('/', undefined, {
-					reqheaders: { 'User-Agent': DEFAULT_USER_AGENT },
+					reqheaders: { 'User-Agent': DEFAULT_OPTIONS.userAgent },
 				})
 				.replyWithFile(200, 'test/fixtures/local/index.html', {
 					'Content-Type': 'text/html; charset=UTF-8',
 				}),
 			nock('http://example.invalid')
 				.get('/page2.html', undefined, {
-					reqheaders: { 'User-Agent': DEFAULT_USER_AGENT },
+					reqheaders: { 'User-Agent': DEFAULT_OPTIONS.userAgent },
 				})
 				.replyWithFile(200, 'test/fixtures/local/page2.html', {
 					'Content-Type': 'text/html; charset=UTF-8',

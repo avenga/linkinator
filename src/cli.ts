@@ -7,7 +7,7 @@ import { hideBin } from 'yargs/helpers';
 import { type Flags, getConfig } from './config.ts';
 import { LinkChecker } from './index.ts';
 import { Format, LogLevel, Logger } from './logger.ts';
-import type { CheckOptions } from './options.ts';
+import { type CheckOptions, DEFAULT_OPTIONS } from './options.ts';
 import {
 	type CrawlResult,
 	type LinkResult,
@@ -15,6 +15,9 @@ import {
 	type RetryInfo,
 } from './types.ts';
 
+// `defaultDescription` is used instead of `default` to show the default values
+// in the help but not actually set the values. This is done in `processOptions`
+// so that options from the config file are not overwritten with CLI defaults.
 const parser = yargs(hideBin(process.argv))
 	.usage(
 		'Usage: $0 LOCATION [options]\n\nWith LOCATION being either the URLs or the paths on disk to check for broken links.',
@@ -23,8 +26,8 @@ const parser = yargs(hideBin(process.argv))
 	.options({
 		concurrency: {
 			type: 'number',
-			describe:
-				'The number of connections to make simultaneously. Defaults to 100.',
+			defaultDescription: DEFAULT_OPTIONS.concurrency.toString(),
+			describe: 'The number of connections to make simultaneously.',
 		},
 		config: {
 			type: 'string',
@@ -33,8 +36,9 @@ const parser = yargs(hideBin(process.argv))
 		},
 		directoryListing: {
 			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.directoryListing.toString(),
 			describe:
-				"Include an automatic directory index file when linking to a directory. Defaults to 'false'.",
+				'Include an automatic directory index file when linking to a directory.',
 		},
 		format: {
 			alias: 'f',
@@ -53,39 +57,42 @@ const parser = yargs(hideBin(process.argv))
 		},
 		retry: {
 			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retry.toString(),
 			describe:
-				"Automatically retry requests that return HTTP 429 responses and include a 'retry-after' header. Defaults to false.",
+				"Automatically retry requests that return HTTP 429 responses and include a 'retry-after' header.",
 		},
 		retryNoHeader: {
 			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeader.toString(),
 			describe:
-				"Automatically retry requests that return HTTP 429 responses and DON'T include a 'retry-after' header. Defaults to false.",
+				"Automatically retry requests that return HTTP 429 responses and DON'T include a 'retry-after' header.",
 		},
 		retryNoHeaderCount: {
 			type: 'number',
-			default: -1,
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeaderCount.toString(),
 			describe:
-				"How many times should a HTTP 429 response with no 'retry-after' header be retried? Defaults to -1 for infinite retries.",
+				"How many times should a HTTP 429 response with no 'retry-after' header be retried?",
 		},
 		retryNoHeaderDelay: {
 			type: 'number',
-			default: 30 * 60 * 1000,
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeaderDelay.toString(),
 			describe:
 				"Delay in ms between retries for HTTP 429 responses with no 'retry-after' header.",
 		},
 		retryErrors: {
 			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retryErrors.toString(),
 			describe:
 				'Automatically retry requests that return 5xx or unknown response.',
 		},
 		retryErrorsCount: {
 			type: 'number',
-			default: 5,
+			defaultDescription: DEFAULT_OPTIONS.retryErrorsCount.toString(),
 			describe: 'How many times should an error be retried?',
 		},
 		retryErrorsJitter: {
 			type: 'number',
-			default: 3000,
+			defaultDescription: DEFAULT_OPTIONS.retryErrorsJitter.toString(),
 			describe: 'Random jitter in ms applied to error retry.',
 		},
 		serverRoot: {
@@ -99,24 +106,13 @@ const parser = yargs(hideBin(process.argv))
 		},
 		skip: {
 			alias: 's',
-			coerce: (arg) => {
-				if (typeof arg === 'string') {
-					return arg.split(/[\s,]+/).filter(Boolean) as string[];
-				}
-
-				if (Array.isArray(arg)) {
-					const linksToSkip: string[] = [];
-					for (const skip of arg) {
-						linksToSkip.push(...skip.split(/[\s,]+/).filter(Boolean));
-					}
-					return linksToSkip;
-				}
-			},
+			type: 'string',
 			describe: 'List of urls in regexy form to not include in the check.',
 		},
 		timeout: {
 			type: 'number',
-			describe: 'Request timeout in ms. Defaults to 0 (no timeout).',
+			defaultDescription: DEFAULT_OPTIONS.timeout.toString(),
+			describe: 'Request timeout in ms.',
 		},
 		urlRewriteSearch: {
 			type: 'string',
@@ -130,11 +126,11 @@ const parser = yargs(hideBin(process.argv))
 		},
 		userAgent: {
 			type: 'string',
-			describe: `The user agent passed in all HTTP requests. Defaults to 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36'`,
+			defaultDescription: DEFAULT_OPTIONS.userAgent.toString(),
+			describe: 'The user agent passed in all HTTP requests.',
 		},
 		verbosity: {
 			type: 'string',
-			choices: Object.values(LogLevel) as string[],
 			describe:
 				"Override the default verbosity for this command. Available options are 'debug', 'info', 'warning', 'error', and 'none'. Defaults to 'warning'.",
 		},
@@ -143,6 +139,7 @@ const parser = yargs(hideBin(process.argv))
 	.implies('urlRewriteReplace', 'urlRewriteSearch')
 	.conflicts('silent', 'verbosity')
 	.conflicts('verbosity', 'silent')
+	.version(false)
 	.strict()
 	.help()
 	.example([
@@ -180,22 +177,9 @@ async function main() {
 
 	const options: CheckOptions = {
 		path: inputs,
-		recurse: flags.recurse,
-		timeout: Number(flags.timeout),
-		markdown: flags.markdown,
-		concurrency: Number(flags.concurrency),
-		serverRoot: flags.serverRoot,
-		directoryListing: flags.directoryListing,
-		retry: flags.retry,
-		retryNoHeader: flags.retryNoHeader,
-		retryNoHeaderCount: Number(flags.retryNoHeaderCount),
-		retryNoHeaderDelay: Number(flags.retryNoHeaderDelay),
-		retryErrors: flags.retryErrors,
-		retryErrorsCount: Number(flags.retryErrorsCount),
-		retryErrorsJitter: Number(flags.retryErrorsJitter),
+		...flags,
 	};
 
-	// TODO: `skip` is already parsed to an array using yargs. Remove when `Flags` type is adjusted
 	if (flags.skip) {
 		if (typeof flags.skip === 'string') {
 			options.linksToSkip = flags.skip.split(/[\s,]+/).filter(Boolean);

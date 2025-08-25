@@ -199,7 +199,7 @@ describe('cli', () => {
 				reject: false,
 			},
 		);
-		assert.match(response.stderr, /Invalid values:\n\s*Argument: verbosity/);
+		assert.match(response.stderr, /VERBOSITY must be/);
 	});
 
 	it('should throw when verbosity and silent are flagged', async () => {
@@ -260,7 +260,10 @@ describe('cli', () => {
 			},
 		);
 		assert.strictEqual(response.exitCode, 1);
-		assert.match(response.stderr, /Missing dependent arguments/);
+		assert.match(
+			response.stderr,
+			/Missing dependent arguments|Implications failed/,
+		);
 	});
 
 	it('should fail if a url replacement is provided without a search', async () => {
@@ -272,7 +275,10 @@ describe('cli', () => {
 			},
 		);
 		assert.strictEqual(response.exitCode, 1);
-		assert.match(response.stderr, /Missing dependent arguments/);
+		assert.match(
+			response.stderr,
+			/Missing dependent arguments|Implications failed/,
+		);
 	});
 
 	it('should respect url rewrites', async () => {

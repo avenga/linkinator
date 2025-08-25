@@ -34,13 +34,30 @@ export type CheckOptions = SharedOptions & {
 	urlRewriteExpressions?: UrlRewriteExpression[];
 };
 
+export const DEFAULT_OPTIONS = {
+	concurrency: 100,
+	directoryListing: false,
+	extraHeaders: {},
+	retry: false,
+	retryErrors: false,
+	retryErrorsCount: 5,
+	retryErrorsJitter: 5000,
+	retryNoHeader: false,
+	retryNoHeaderCount: -1,
+	retryNoHeaderDelay: 30 * 60 * 1000,
+	timeout: 20000,
+	userAgent:
+		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36',
+} satisfies Partial<CheckOptions>;
+
+type DefaultKeys = keyof typeof DEFAULT_OPTIONS;
+
+// Extend CheckOptions but make all keys that have a default value required
 export type InternalCheckOptions = {
 	syntheticServerRoot?: string;
 	staticHttpServerHost?: string;
-} & CheckOptions;
-
-export const DEFAULT_USER_AGENT =
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36';
+} & Omit<CheckOptions, DefaultKeys> &
+	Required<Pick<CheckOptions, DefaultKeys>>;
 
 /**
  * Validate the provided flags all work with each other.
@@ -49,7 +66,7 @@ export const DEFAULT_USER_AGENT =
 export async function processOptions(
 	options_: CheckOptions,
 ): Promise<InternalCheckOptions> {
-	const options: InternalCheckOptions = { ...options_ };
+	const options: InternalCheckOptions = { ...DEFAULT_OPTIONS, ...options_ };
 
 	// Ensure at least one path is provided
 	if (options.path.length === 0) {
@@ -59,11 +76,6 @@ export async function processOptions(
 	// Normalize options.path to an array of strings
 	if (!Array.isArray(options.path)) {
 		options.path = [options.path];
-	}
-
-	// Disable directory listings by default
-	if (options.directoryListing === undefined) {
-		options.directoryListing = false;
 	}
 
 	// Ensure we do not mix http:// and file system paths.  The paths passed in
@@ -87,11 +99,7 @@ export async function processOptions(
 		);
 	}
 
-	options.userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
 	options.serverRoot &&= path.normalize(options.serverRoot);
-
-	// Add extra headers
-	options.extraHeaders = options.extraHeaders ?? {};
 
 	// Expand globs into paths
 	if (!isUrlType) {
