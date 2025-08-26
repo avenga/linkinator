@@ -106,9 +106,55 @@ jobs:
           path: |
             build/binaries/linkinator-darwin-x64
             build/binaries/linkinator-darwin-arm64
+  # sign:
+  #   # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: macos-14
+  #   needs: [build]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Download unsigned macOS binaries
+  #       uses: actions/download-artifact@v5
+  #       with:
+  #         name: binaries-macos-unsigned
+  #         path: binaries
+  #     - run: ls -alh binaries
+  #     - name: Sign x64 binary
+  #       uses: lando/code-sign-action@v3
+  #       with:
+  #         file: binaries/linkinator-darwin-x64
+  #         certificate-data: ${{ secrets.APPLE_CERT_DATA }}
+  #         certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+  #         apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+  #         # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
+  #         # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+  #         # apple-notary-tool: altool
+  #         # apple-product-id: dev.lando.code-sign-action
+  #         # options: --options runtime --entitlements ci/entitlements.plist
+  #     - name: Sign arm64 binary
+  #       uses: lando/code-sign-action@v3
+  #       with:
+  #         file: binaries/linkinator-darwin-arm64
+  #         certificate-data: ${{ secrets.APPLE_CERT_DATA }}
+  #         certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+  #         apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+  #         # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
+  #         # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+  #         # apple-notary-tool: altool
+  #         # apple-product-id: dev.lando.code-sign-action
+  #         # options: --options runtime --entitlements ci/entitlements.plist
+  #     - run: ls -alh binaries
+  #     - name: Upload signed macOS binaries
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: binaries-macos
+  #         retention-days: 3
+  #         path: |
+  #           binaries/linkinator-darwin-x64
+  #           binaries/linkinator-darwin-arm64
   release:
     # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # needs: [build, sign]
     needs: [build]
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -136,6 +182,7 @@ jobs:
       - name: Download signed macOS binaries
         uses: actions/download-artifact@v5
         with:
+          # name: binaries-macos
           name: binaries-macos-unsigned
           path: build/binaries
       - run: ls -alh build/binaries
