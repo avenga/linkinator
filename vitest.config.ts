@@ -6,7 +6,10 @@ export default defineConfig({
     testTimeout: 20_000,
     coverage: {
       provider: 'v8',
-      include: ['src/**']
+      include: ['src/**'],
+      exclude: [
+        'src/cli.ts' // CLI is tested by calling it using `execa` and asserting the output
+      ]
     },
   },
 });
