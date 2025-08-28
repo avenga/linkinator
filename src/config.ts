@@ -29,8 +29,7 @@ export async function getConfig(flags: Flags) {
 
 	// Combine the flags passed on the CLI with the flags in the config file,
 	// with CLI flags getting precedence
-	const merged = { ...config, ...flags };
-	return FlagsSchema.parse(merged);
+	return { ...config, ...flags };
 }
 
 /**

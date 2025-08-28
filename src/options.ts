@@ -67,11 +67,7 @@ export type InternalCheckOptions = {
 export async function processOptions(
 	optionsRaw: unknown,
 ): Promise<InternalCheckOptions> {
-	const optionsValidated = CheckOptionsSchema.parse(optionsRaw);
-	const options: InternalCheckOptions = {
-		...DEFAULT_OPTIONS,
-		...optionsValidated,
-	};
+	const options = CheckOptionsSchema.parse(optionsRaw) as InternalCheckOptions;
 
 	// Ensure at least one path is provided
 	if (options.path.length === 0) {
