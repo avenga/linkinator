@@ -8,6 +8,7 @@ import { type Flags, getConfig } from './config.ts';
 import { LinkChecker } from './index.ts';
 import { Format, LogLevel, Logger } from './logger.ts';
 import { type CheckOptions, DEFAULT_OPTIONS } from './options.ts';
+import { FlagsSchema } from './schema.ts';
 import {
 	type CrawlResult,
 	type LinkResult,
@@ -154,7 +155,8 @@ async function main() {
 	const argv = await parser.parseAsync();
 
 	const inputs = argv._.map((v) => v.toString());
-	const flags = await getConfig(argv);
+	const flagsUnvalidated = await getConfig(argv);
+	const flags = FlagsSchema.parse(flagsUnvalidated);
 
 	const start = Date.now();
 	const verbosity = parseVerbosity(flags);

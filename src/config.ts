@@ -1,10 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import type { SharedOptions } from './options.ts';
+import type { CommonOptions } from './options.ts';
+import { FlagsSchema } from './schema.ts';
 
 // All flags that can be set using CLI or config file
-export type Flags = SharedOptions & {
+export type Flags = CommonOptions & {
 	config?: string;
 	skip?: string | string[];
 	format?: string;
@@ -28,7 +29,8 @@ export async function getConfig(flags: Flags) {
 
 	// Combine the flags passed on the CLI with the flags in the config file,
 	// with CLI flags getting precedence
-	return { ...config, ...flags };
+	const merged = { ...config, ...flags };
+	return FlagsSchema.parse(merged);
 }
 
 /**

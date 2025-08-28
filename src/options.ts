@@ -2,9 +2,10 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { glob } from 'glob';
+import { CheckOptionsSchema } from './schema.ts';
 
 // Options used for CLI, config file and API
-export type SharedOptions = {
+export type CommonOptions = {
 	concurrency?: number;
 	recurse?: boolean;
 	timeout?: number;
@@ -27,10 +28,10 @@ export type UrlRewriteExpression = {
 	replacement: string;
 };
 
-export type CheckOptions = SharedOptions & {
+export type CheckOptions = CommonOptions & {
 	path: string | string[];
 	port?: number;
-	linksToSkip?: string[] | ((link: string) => Promise<boolean>);
+	linksToSkip?: string[] | ((link: string) => boolean | Promise<boolean>);
 	urlRewriteExpressions?: UrlRewriteExpression[];
 };
 
@@ -64,9 +65,13 @@ export type InternalCheckOptions = {
  * @param options CheckOptions passed in from the CLI (or API)
  */
 export async function processOptions(
-	options_: CheckOptions,
+	optionsRaw: unknown,
 ): Promise<InternalCheckOptions> {
-	const options: InternalCheckOptions = { ...DEFAULT_OPTIONS, ...options_ };
+	const optionsValidated = CheckOptionsSchema.parse(optionsRaw);
+	const options: InternalCheckOptions = {
+		...DEFAULT_OPTIONS,
+		...optionsValidated,
+	};
 
 	// Ensure at least one path is provided
 	if (options.path.length === 0) {
