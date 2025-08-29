@@ -83,9 +83,7 @@ export function createFetchOptions(options: CrawlOptions): RequestInit {
 	for (const [header, value] of Object.entries(options.extraHeaders)) {
 		fetchOptions.headers.append(header, value);
 	}
-	fetchOptions.signal = AbortSignal.timeout(
-		options.checkOptions.timeout || 20000,
-	);
+	fetchOptions.signal = AbortSignal.timeout(options.checkOptions.timeout);
 
 	return fetchOptions;
 }

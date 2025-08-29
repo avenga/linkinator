@@ -2,225 +2,191 @@
 
 import process from 'node:process';
 import chalk from 'chalk';
-import meow from 'meow';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import { type Flags, getConfig } from './config.ts';
 import { LinkChecker } from './index.ts';
 import { Format, LogLevel, Logger } from './logger.ts';
-import type { CheckOptions } from './options.ts';
-import { type LinkResult, LinkState, type RetryInfo } from './types.ts';
+import { type CheckOptions, DEFAULT_OPTIONS } from './options.ts';
+import {
+	type CrawlResult,
+	type LinkResult,
+	LinkState,
+	type RetryInfo,
+} from './types.ts';
 
-const cli = meow(
-	`
-    Usage
-      $ linkinator LOCATION [ --arguments ]
-
-    Positional arguments
-
-      LOCATION
-        Required. Either the URLs or the paths on disk to check for broken links.
-
-    Flags
-
-      --concurrency
-        The number of connections to make simultaneously. Defaults to 100.
-
-      --config
-          Path to the config file to use. Looks for \`linkinator.config.json\` by default.
-
-      --directory-listing
-          Include an automatic directory index file when linking to a directory.
-          Defaults to 'false'.
-
-      --format, -f
-          Return the data in CSV or JSON format.
-
-      --help
-          Show this command.
-
-      --markdown
-          Automatically parse and scan markdown if scanning from a location on disk.
-
-      --recurse, -r
-          Recursively follow links on the same root domain.
-
-      --retry,
-          Automatically retry requests that return HTTP 429 responses and include
-          a 'retry-after' header. Defaults to false.
-
-      --retry-no-header,
-          Automatically retry requests that return HTTP 429 responses and DON'T
-          include a 'retry-after' header. Defaults to false.
-
-      --retry-no-header-count,
-          How many times should a HTTP 429 response with no 'retry-after' header
-          be retried? Defaults to -1 for infinite retries.
-
-      --retry-no-header-delay,
-          Delay in ms between retries for HTTP 429 responses with
-          no 'retry-after' header.
-
-      --retry-errors,
-          Automatically retry requests that return 5xx or unknown response.
-
-      --retry-errors-count,
-          How many times should an error be retried?
-
-      --retry-errors-jitter,
-          Random jitter in ms applied to error retry.
-
-      --server-root
-          When scanning a locally directory, customize the location on disk
-          where the server is started.  Defaults to the path passed in [LOCATION].
-
-      --skip, -s
-          List of urls in regexy form to not include in the check.
-
-      --timeout
-          Request timeout in ms.  Defaults to 0 (no timeout).
-
-      --url-rewrite-search
-          Pattern to search for in urls.  Must be used with --url-rewrite-replace.
-
-      --url-rewrite-replace
-          Expression used to replace search content.  Must be used with --url-rewrite-search.
-
-      --user-agent
-          The user agent passed in all HTTP requests. Defaults to 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36'
-
-      --verbosity
-          Override the default verbosity for this command. Available options are
-          'debug', 'info', 'warning', 'error', and 'none'.  Defaults to 'warning'.
-
-    Examples
-      $ linkinator docs/
-      $ linkinator https://www.google.com
-      $ linkinator . --recurse
-      $ linkinator . --skip www.googleapis.com
-      $ linkinator . --format CSV
-`,
-	{
-		importMeta: import.meta,
-		flags: {
-			config: { type: 'string' },
-			concurrency: { type: 'number' },
-			recurse: { type: 'boolean', shortFlag: 'r' },
-			skip: { type: 'string', shortFlag: 's', isMultiple: true },
-			format: { type: 'string', shortFlag: 'f' },
-			silent: { type: 'boolean' },
-			timeout: { type: 'number' },
-			markdown: { type: 'boolean' },
-			serverRoot: { type: 'string' },
-			verbosity: { type: 'string' },
-			directoryListing: { type: 'boolean' },
-			retry: { type: 'boolean' },
-			retryNoHeader: { type: 'boolean' },
-			retryNoHeaderCount: { type: 'number', default: -1 },
-			retryNoHeaderDelay: { type: 'number', default: 30 * 60 * 1000 },
-			retryErrors: { type: 'boolean' },
-			retryErrorsCount: { type: 'number', default: 5 },
-			retryErrorsJitter: { type: 'number', default: 3000 },
-			urlRewriteSearch: { type: 'string' },
-			urlReWriteReplace: { type: 'string' },
+// `defaultDescription` is used instead of `default` to show the default values
+// in the help but not actually set the values. This is done in `processOptions`
+// so that options from the config file are not overwritten with CLI defaults.
+const parser = yargs(hideBin(process.argv))
+	.usage(
+		'Usage: $0 LOCATION [options]\n\nWith LOCATION being either the URLs or the paths on disk to check for broken links.',
+	)
+	.demandCommand(1, 'LOCATION is required')
+	.options({
+		concurrency: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.concurrency.toString(),
+			describe: 'The number of connections to make simultaneously.',
 		},
-		booleanDefault: undefined,
-	},
-);
-
-let flags: Flags;
+		config: {
+			type: 'string',
+			describe:
+				'Path to the config file to use. Looks for `linkinator.config.json` by default.',
+		},
+		directoryListing: {
+			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.directoryListing.toString(),
+			describe:
+				'Include an automatic directory index file when linking to a directory.',
+		},
+		format: {
+			alias: 'f',
+			type: 'string',
+			describe: 'Return the data in CSV or JSON format.',
+		},
+		markdown: {
+			type: 'boolean',
+			describe:
+				'Automatically parse and scan markdown if scanning from a location on disk.',
+		},
+		recurse: {
+			alias: 'r',
+			type: 'boolean',
+			describe: 'Recursively follow links on the same root domain.',
+		},
+		retry: {
+			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retry.toString(),
+			describe:
+				"Automatically retry requests that return HTTP 429 responses and include a 'retry-after' header.",
+		},
+		retryNoHeader: {
+			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeader.toString(),
+			describe:
+				"Automatically retry requests that return HTTP 429 responses and DON'T include a 'retry-after' header.",
+		},
+		retryNoHeaderCount: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeaderCount.toString(),
+			describe:
+				"How many times should a HTTP 429 response with no 'retry-after' header be retried?",
+		},
+		retryNoHeaderDelay: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.retryNoHeaderDelay.toString(),
+			describe:
+				"Delay in ms between retries for HTTP 429 responses with no 'retry-after' header.",
+		},
+		retryErrors: {
+			type: 'boolean',
+			defaultDescription: DEFAULT_OPTIONS.retryErrors.toString(),
+			describe:
+				'Automatically retry requests that return 5xx or unknown response.',
+		},
+		retryErrorsCount: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.retryErrorsCount.toString(),
+			describe: 'How many times should an error be retried?',
+		},
+		retryErrorsJitter: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.retryErrorsJitter.toString(),
+			describe: 'Random jitter in ms applied to error retry.',
+		},
+		serverRoot: {
+			type: 'string',
+			describe:
+				'When scanning a local directory, customize the location on disk where the server is started. Defaults to the path passed in [LOCATION].',
+		},
+		silent: {
+			type: 'boolean',
+			describe: 'Silence output (alias for --verbosity error).',
+		},
+		skip: {
+			alias: 's',
+			type: 'string',
+			describe: 'List of urls in regexy form to not include in the check.',
+		},
+		timeout: {
+			type: 'number',
+			defaultDescription: DEFAULT_OPTIONS.timeout.toString(),
+			describe: 'Request timeout in ms.',
+		},
+		urlRewriteSearch: {
+			type: 'string',
+			describe:
+				'Pattern to search for in urls. Must be used with --url-rewrite-replace.',
+		},
+		urlRewriteReplace: {
+			type: 'string',
+			describe:
+				'Expression used to replace search content. Must be used with --url-rewrite-search.',
+		},
+		userAgent: {
+			type: 'string',
+			defaultDescription: DEFAULT_OPTIONS.userAgent.toString(),
+			describe: 'The user agent passed in all HTTP requests.',
+		},
+		verbosity: {
+			type: 'string',
+			describe:
+				"Override the default verbosity for this command. Available options are 'debug', 'info', 'warning', 'error', and 'none'. Defaults to 'warning'.",
+		},
+	})
+	.implies('urlRewriteSearch', 'urlRewriteReplace')
+	.implies('urlRewriteReplace', 'urlRewriteSearch')
+	.conflicts('silent', 'verbosity')
+	.conflicts('verbosity', 'silent')
+	.version(false)
+	.strict()
+	.help()
+	.example([
+		['$0 docs/'],
+		['$0 https://www.google.com'],
+		['$0 . --recurse'],
+		['$0 . --skip www.googleapis.com'],
+		['$0 . --format CSV'],
+	]);
 
 async function main() {
-	if (cli.input.length === 0) {
-		cli.showHelp();
-		return;
-	}
+	const argv = await parser.parseAsync();
 
-	flags = await getConfig(cli.flags);
-	if (
-		(flags.urlRewriteReplace && !flags.urlRewriteSearch) ||
-		(flags.urlRewriteSearch && !flags.urlRewriteReplace)
-	) {
-		throw new Error(
-			'The url-rewrite-replace flag must be used with the url-rewrite-search flag.',
-		);
-	}
+	const inputs = argv._.map((v) => v.toString());
+	const flags = await getConfig(argv);
 
 	const start = Date.now();
 	const verbosity = parseVerbosity(flags);
 	const format = parseFormat(flags);
 	const logger = new Logger(verbosity, format);
 
-	logger.error(`🏊‍♂️ crawling ${cli.input.join(' ')}`);
+	logger.error(`🏊‍♂️ crawling ${inputs.join(' ')}`);
 
 	const checker = new LinkChecker();
 	if (format === Format.CSV) {
-		const header = 'url,status,state,parent,failureDetails';
-		console.log(header);
+		console.log('url,status,state,parent,failureDetails');
 	}
 
 	checker.on('retry', (info: RetryInfo) => {
 		logger.warn(`Retrying: ${info.url} in ${info.secondsUntilRetry} seconds.`);
 	});
 	checker.on('link', (link: LinkResult) => {
-		let state = '';
-		switch (link.state) {
-			case LinkState.BROKEN: {
-				state = `[${chalk.red(link.status?.toString())}]`;
-				logger.error(`${state} ${chalk.gray(link.url)}`);
-				break;
-			}
-
-			case LinkState.OK: {
-				state = `[${chalk.green(link.status?.toString())}]`;
-				logger.warn(`${state} ${chalk.gray(link.url)}`);
-				break;
-			}
-
-			case LinkState.SKIPPED: {
-				state = `[${chalk.grey('SKP')}]`;
-				logger.info(`${state} ${chalk.gray(link.url)}`);
-				break;
-			}
-		}
-
-		if (format === Format.CSV) {
-			const showIt = shouldShowResult(link, verbosity);
-			if (showIt) {
-				const failureDetails = link.failureDetails
-					? JSON.stringify(link.failureDetails, null, 2)
-					: '';
-				console.log(
-					`"${link.url}",${link.status},${link.state},"${link.parent || ''}","${failureDetails}"`,
-				);
-			}
-		}
+		handleLink(link, logger, format, verbosity);
 	});
+
 	const options: CheckOptions = {
-		path: cli.input,
-		recurse: flags.recurse,
-		timeout: Number(flags.timeout),
-		markdown: flags.markdown,
-		concurrency: Number(flags.concurrency),
-		serverRoot: flags.serverRoot,
-		directoryListing: flags.directoryListing,
-		retry: flags.retry,
-		retryNoHeader: flags.retryNoHeader,
-		retryNoHeaderCount: Number(flags.retryNoHeaderCount),
-		retryNoHeaderDelay: Number(flags.retryNoHeaderDelay),
-		retryErrors: flags.retryErrors,
-		retryErrorsCount: Number(flags.retryErrorsCount),
-		retryErrorsJitter: Number(flags.retryErrorsJitter),
+		path: inputs,
+		...flags,
 	};
+
 	if (flags.skip) {
 		if (typeof flags.skip === 'string') {
 			options.linksToSkip = flags.skip.split(/[\s,]+/).filter(Boolean);
 		} else if (Array.isArray(flags.skip)) {
-			// With `isMultiple` enabled in meow, a comma delimeted list will still
-			// be passed as an array, but with a single element that still needs to
-			// be split.
 			options.linksToSkip = [];
 			for (const skip of flags.skip) {
-				const rules = skip.split(/[\s,]+/).filter(Boolean);
-				options.linksToSkip.push(...rules);
+				options.linksToSkip.push(...skip.split(/[\s,]+/).filter(Boolean));
 			}
 		}
 	}
@@ -235,9 +201,57 @@ async function main() {
 	}
 
 	const result = await checker.check(options);
-	const filteredResults = result.links.filter((link) =>
-		shouldShowResult(link, verbosity),
+	outputResults(result, format, verbosity, logger, start);
+}
+
+function handleLink(
+	link: LinkResult,
+	logger: Logger,
+	format: Format,
+	verbosity: LogLevel,
+) {
+	let state = '';
+	switch (link.state) {
+		case LinkState.BROKEN: {
+			state = `[${chalk.red(link.status?.toString())}]`;
+			logger.error(`${state} ${chalk.gray(link.url)}`);
+			break;
+		}
+
+		case LinkState.OK: {
+			state = `[${chalk.green(link.status?.toString())}]`;
+			logger.warn(`${state} ${chalk.gray(link.url)}`);
+			break;
+		}
+
+		case LinkState.SKIPPED: {
+			state = `[${chalk.grey('SKP')}]`;
+			logger.info(`${state} ${chalk.gray(link.url)}`);
+			break;
+		}
+	}
+
+	if (format === Format.CSV && shouldShowResult(link, verbosity)) {
+		const failureDetails = link.failureDetails
+			? JSON.stringify(link.failureDetails, null, 2)
+			: '';
+		console.log(
+			`"${link.url}",${link.status},${link.state},"${link.parent || ''}","${failureDetails}"`,
+		);
+	}
+}
+
+function outputResults(
+	result: CrawlResult,
+	format: Format,
+	verbosity: LogLevel,
+	logger: Logger,
+	start: number,
+) {
+	const filteredResults = result.links.filter((l) =>
+		shouldShowResult(l, verbosity),
 	);
+
 	if (format === Format.JSON) {
 		result.links = filteredResults;
 		console.log(JSON.stringify(result, null, 2));
@@ -291,6 +305,7 @@ async function main() {
 
 			return false;
 		});
+
 		if (links.length === 0) {
 			continue;
 		}
@@ -349,12 +364,6 @@ async function main() {
 }
 
 function parseVerbosity(flags: Flags): LogLevel {
-	if (flags.silent && flags.verbosity) {
-		throw new Error(
-			'The SILENT and VERBOSITY flags cannot both be defined. Please consider using VERBOSITY only.',
-		);
-	}
-
 	if (flags.silent) {
 		return LogLevel.ERROR;
 	}

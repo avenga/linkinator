@@ -64,7 +64,8 @@ chmod +x linkinator
 
 [macOS arm64 Download](https://github.com/avenga/linkinator/releases/latest/download/linkinator-darwin-arm64)
 
-The binary needs to be marked as executable. Also, there might be a quarantine attribute applied automatically because the binary is unsigned, which needs to be removed.
+The binary needs to be marked as executable.
+**Important:** when downloading the binary using a browser instead of `wget`/`curl`, it might receive a quarantine attribute. See below on how to remove it.
 
 ```sh
 # x64
@@ -76,7 +77,7 @@ chmod +x linkinator
 ./linkinator --help
 ```
 
-If you see an error when executing (file damaged, invalid signature or similar), there might be a quarantine attribute applied automatically because the binary is unsigned, which needs to be removed.
+**If you see an error when executing** (file damaged, invalid signature or similar), there might be a quarantine attribute applied automatically because the binary is unsigned, which needs to be removed:
 
 ```sh
 xattr -d com.apple.quarantine linkinator

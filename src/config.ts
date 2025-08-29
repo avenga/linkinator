@@ -1,29 +1,17 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import type { SharedOptions } from './options.ts';
 
-export type Flags = {
-	concurrency?: number;
+// All flags that can be set using CLI or config file
+export type Flags = SharedOptions & {
 	config?: string;
-	recurse?: boolean;
 	skip?: string | string[];
 	format?: string;
 	silent?: boolean;
 	verbosity?: string;
-	timeout?: number;
-	markdown?: boolean;
-	serverRoot?: string;
-	directoryListing?: boolean;
-	retry?: boolean;
-	retryNoHeader?: boolean;
-	retryNoHeaderCount?: number;
-	retryNoHeaderDelay?: number;
-	retryErrors?: boolean;
-	retryErrorsCount?: number;
-	retryErrorsJitter?: number;
 	urlRewriteSearch?: string;
 	urlRewriteReplace?: string;
-	extraHeaders?: { [key: string]: string };
 };
 
 const validConfigExtensions = ['.js', '.mjs', '.cjs', '.json'];
@@ -38,20 +26,9 @@ export async function getConfig(flags: Flags) {
 		config = (await tryGetDefaultConfig()) || {};
 	}
 
-	// `meow` is set up to pass boolean flags as `undefined` if not passed.
-	// copy the struct, and delete properties that are `undefined` so the merge
-	// doesn't blast away config level settings.
-	const strippedFlags = { ...flags };
-	for (const [key, value] of Object.entries(strippedFlags)) {
-		if (value === undefined || (Array.isArray(value) && value.length === 0)) {
-			delete (strippedFlags as Record<string, Record<string, unknown>>)[key];
-		}
-	}
-
 	// Combine the flags passed on the CLI with the flags in the config file,
 	// with CLI flags getting precedence
-	config = { ...config, ...strippedFlags };
-	return config;
+	return { ...config, ...flags };
 }
 
 /**
