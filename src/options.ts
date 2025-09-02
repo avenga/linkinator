@@ -2,63 +2,11 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { glob } from 'glob';
-import { CheckOptionsSchema } from './schema.ts';
-
-// Options used for CLI, config file and API
-export type CommonOptions = {
-	concurrency?: number;
-	recurse?: boolean;
-	timeout?: number;
-	markdown?: boolean;
-	serverRoot?: string;
-	directoryListing?: boolean;
-	retry?: boolean;
-	retryNoHeader?: boolean;
-	retryNoHeaderCount?: number;
-	retryNoHeaderDelay?: number;
-	retryErrors?: boolean;
-	retryErrorsCount?: number;
-	retryErrorsJitter?: number;
-	extraHeaders?: { [key: string]: string };
-	userAgent?: string;
-};
-
-export type UrlRewriteExpression = {
-	pattern: RegExp;
-	replacement: string;
-};
-
-export type CheckOptions = CommonOptions & {
-	path: string | string[];
-	port?: number;
-	linksToSkip?: string[] | ((link: string) => boolean | Promise<boolean>);
-	urlRewriteExpressions?: UrlRewriteExpression[];
-};
-
-export const DEFAULT_OPTIONS = {
-	concurrency: 100,
-	directoryListing: false,
-	extraHeaders: {},
-	retry: false,
-	retryErrors: false,
-	retryErrorsCount: 5,
-	retryErrorsJitter: 5000,
-	retryNoHeader: false,
-	retryNoHeaderCount: -1,
-	retryNoHeaderDelay: 30 * 60 * 1000,
-	timeout: 20000,
-	userAgent:
-		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36',
-} satisfies Partial<CheckOptions>;
-
-type DefaultKeys = keyof typeof DEFAULT_OPTIONS;
-
-// Extend CheckOptions but make all keys that have a default value required
-export type InternalCheckOptions = {
-	syntheticServerRoot?: string;
-	staticHttpServerHost?: string;
-} & Omit<CheckOptions, DefaultKeys> &
-	Required<Pick<CheckOptions, DefaultKeys>>;
+import {
+	type CheckOptions,
+	type InternalCheckOptions,
+	InternalCheckOptionsSchema,
+} from './schema.ts';
 
 /**
  * Validate the provided flags all work with each other.
@@ -67,17 +15,7 @@ export type InternalCheckOptions = {
 export async function processOptions(
 	optionsRaw: unknown,
 ): Promise<InternalCheckOptions> {
-	const options = CheckOptionsSchema.parse(optionsRaw) as InternalCheckOptions;
-
-	// Ensure at least one path is provided
-	if (options.path.length === 0) {
-		throw new Error('At least one path must be provided');
-	}
-
-	// Normalize options.path to an array of strings
-	if (!Array.isArray(options.path)) {
-		options.path = [options.path];
-	}
+	const options = await InternalCheckOptionsSchema.parseAsync(optionsRaw);
 
 	// Ensure we do not mix http:// and file system paths.  The paths passed in
 	// must all be filesystem paths, or HTTP paths.
@@ -168,7 +106,7 @@ export async function processOptions(
 				options.serverRoot = pathParts.slice(0, -1).join(path.sep) || '.';
 			} else {
 				options.serverRoot = options.path[0];
-				options.path = '/';
+				options.path = ['/'];
 			}
 
 			options.syntheticServerRoot = options.serverRoot;

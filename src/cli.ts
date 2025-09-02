@@ -4,11 +4,15 @@ import process from 'node:process';
 import chalk from 'chalk';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { type Flags, getConfig } from './config.ts';
+import { getConfig } from './config.ts';
 import { LinkChecker } from './index.ts';
 import { Format, LogLevel, Logger } from './logger.ts';
-import { type CheckOptions, DEFAULT_OPTIONS } from './options.ts';
-import { FlagsSchema } from './schema.ts';
+import {
+	type CheckOptions,
+	DEFAULT_OPTIONS,
+	type Flags,
+	FlagsSchema,
+} from './schema.ts';
 import {
 	type CrawlResult,
 	type LinkResult,
@@ -156,7 +160,19 @@ async function main() {
 
 	const inputs = argv._.map((v) => v.toString());
 	const flagsUnvalidated = await getConfig(argv);
-	const flags = FlagsSchema.parse(flagsUnvalidated);
+	const {
+		success,
+		data: flags,
+		error,
+	} = FlagsSchema.safeParse(flagsUnvalidated);
+
+	if (!success) {
+		console.error(chalk.red('Invalid option(s):'));
+		for (const issue of error.issues) {
+			console.error(`  --${issue.path.join('.')}: ${issue.message}`);
+		}
+		process.exit(2);
+	}
 
 	const start = Date.now();
 	const verbosity = parseVerbosity(flags);

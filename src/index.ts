@@ -7,5 +7,5 @@ export {
 	type LinkResult,
 	type CrawlResult,
 } from './types.ts';
-export type { CheckOptions } from './options.ts';
+export type { CheckOptionsInput as CheckOptions } from './schema.ts';
 export { LinkChecker } from './crawler.ts';

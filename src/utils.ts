@@ -1,12 +1,12 @@
 import * as path from 'node:path';
 import { type CrawlOptions, LinkChecker } from './crawler.ts';
-import type { CheckOptions, InternalCheckOptions } from './options.ts';
+import type { CheckOptionsInput, InternalCheckOptions } from './schema.ts';
 
 /**
  * Convenience method to perform a scan.
  * @param options CheckOptions to be passed on
  */
-export async function check(options: CheckOptions) {
+export async function check(options: CheckOptionsInput) {
 	const checker = new LinkChecker();
 	const results = await checker.check(options);
 	return results;

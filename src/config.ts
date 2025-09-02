@@ -1,26 +1,14 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import type { CommonOptions } from './options.ts';
-import { FlagsSchema } from './schema.ts';
-
-// All flags that can be set using CLI or config file
-export type Flags = CommonOptions & {
-	config?: string;
-	skip?: string | string[];
-	format?: string;
-	silent?: boolean;
-	verbosity?: string;
-	urlRewriteSearch?: string;
-	urlRewriteReplace?: string;
-};
+import { type FlagsInput, FlagsSchema } from './schema.ts';
 
 const validConfigExtensions = ['.js', '.mjs', '.cjs', '.json'];
 type ConfigExtensions = (typeof validConfigExtensions)[number];
 
-export async function getConfig(flags: Flags) {
+export async function getConfig(flags: FlagsInput) {
 	// Check to see if a config file path was passed
-	let config: Flags;
+	let config: FlagsInput;
 	if (flags.config) {
 		config = await parseConfigFile(flags.config);
 	} else {
@@ -47,7 +35,7 @@ async function tryGetDefaultConfig() {
 	}
 }
 
-async function parseConfigFile(configPath: string): Promise<Flags> {
+async function parseConfigFile(configPath: string): Promise<FlagsInput> {
 	const typeOfConfig = getTypeOfConfig(configPath);
 
 	switch (typeOfConfig) {
@@ -82,20 +70,20 @@ function getTypeOfConfig(configPath: string): ConfigExtensions {
 	);
 }
 
-async function importConfigFile(configPath: string): Promise<Flags> {
+async function importConfigFile(configPath: string): Promise<FlagsInput> {
 	const config = (await import(
 		`file://${path.resolve(process.cwd(), configPath)}`
-	)) as { default: Flags };
+	)) as { default: FlagsInput };
 	return config.default;
 }
 
-async function readJsonConfigFile(configPath: string): Promise<Flags> {
+async function readJsonConfigFile(configPath: string): Promise<FlagsInput> {
 	const configFileContents = await fs.readFile(configPath, {
 		encoding: 'utf8',
 	});
 
 	try {
-		return JSON.parse(configFileContents) as Flags;
+		return JSON.parse(configFileContents) as FlagsInput;
 	} catch (error) {
 		throw new Error(`Error parsing ${configPath}: ${error}`);
 	}

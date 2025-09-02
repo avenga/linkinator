@@ -3,12 +3,9 @@ import type * as http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import process from 'node:process';
 import { getLinks } from './links.ts';
-import {
-	type CheckOptions,
-	type InternalCheckOptions,
-	processOptions,
-} from './options.ts';
+import { processOptions } from './options.ts';
 import { Queue } from './queue.ts';
+import type { CheckOptionsInput, InternalCheckOptions } from './schema.ts';
 import { startWebServer } from './server.ts';
 import {
 	type CrawlResult,
@@ -63,7 +60,7 @@ export class LinkChecker extends EventEmitter {
 	 * status codes.
 	 * @param options Options to use while checking for 404s
 	 */
-	async check(options_: CheckOptions): Promise<CrawlResult> {
+	async check(options_: CheckOptionsInput): Promise<CrawlResult> {
 		const options = await processOptions(options_);
 		if (!Array.isArray(options.path)) {
 			options.path = [options.path];

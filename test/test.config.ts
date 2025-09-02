@@ -1,11 +1,12 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { assert, describe, expect, it } from 'vitest';
-import { type Flags, getConfig } from '../src/config.ts';
+import { getConfig } from '../src/config.ts';
+import type { FlagsInput } from '../src/schema.ts';
 
 describe('config', () => {
 	it('should allow passing no config', async () => {
-		const cfg: Flags = {
+		const cfg: FlagsInput = {
 			format: 'json',
 			recurse: true,
 			silent: true,
@@ -39,7 +40,9 @@ describe('config', () => {
 		const configPath = path.resolve(
 			'test/fixtures/config/linkinator.config.json',
 		);
-		const expected = JSON.parse(await fs.readFile(configPath, 'utf8')) as Flags;
+		const expected = JSON.parse(
+			await fs.readFile(configPath, 'utf8'),
+		) as FlagsInput;
 		expected.skip = 'loo';
 		const config = await getConfig({
 			config: configPath,
@@ -58,7 +61,7 @@ describe('config', () => {
 
 			const expected = JSON.parse(
 				await fs.readFile(configPath, 'utf8'),
-			) as Flags;
+			) as FlagsInput;
 			const config = await getConfig({ config: configPath });
 			// biome-ignore lint/performance/noDelete: <explanation>
 			delete config.config;
@@ -70,7 +73,7 @@ describe('config', () => {
 			const configPath = 'test/fixtures/config/linkinator.config.json';
 			const expected = JSON.parse(
 				await fs.readFile(configPath, 'utf8'),
-			) as Flags;
+			) as FlagsInput;
 			const config = await getConfig({ config: configPath });
 			// biome-ignore lint/performance/noDelete: <explanation>
 			delete config.config;

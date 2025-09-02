@@ -8,7 +8,7 @@ import {
 	LinkState,
 	check,
 } from '../src/index.js';
-import { DEFAULT_OPTIONS } from '../src/options.ts';
+import { DEFAULT_OPTIONS } from '../src/schema.ts';
 import { invertedPromise } from './utils.ts';
 
 nock.disableNetConnect();
@@ -368,7 +368,7 @@ describe('linkinator', () => {
 			check({
 				path: [],
 			}),
-		).rejects.toThrow(/At least one/);
+		).rejects.toThrow(/"code": "too_small"/);
 	});
 
 	it('should not pollute the original options after merge', async () => {
