@@ -9,3 +9,4 @@ export {
 } from './types.ts';
 export type { CheckOptionsInput as CheckOptions } from './schema.ts';
 export { LinkChecker } from './crawler.ts';
+export { type ValidationIssue, ValidationError } from './options.ts';

@@ -368,7 +368,10 @@ describe('linkinator', () => {
 			check({
 				path: [],
 			}),
-		).rejects.toThrow(/"code": "too_small"/);
+		).rejects.toMatchObject({
+			name: 'ValidationError',
+			issues: [{ code: 'too_small' }],
+		});
 	});
 
 	it('should not pollute the original options after merge', async () => {

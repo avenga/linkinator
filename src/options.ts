@@ -3,10 +3,25 @@ import path from 'node:path';
 import process from 'node:process';
 import { glob } from 'glob';
 import {
-	type CheckOptions,
 	type InternalCheckOptions,
 	InternalCheckOptionsSchema,
 } from './schema.ts';
+
+export interface ValidationIssue {
+	code?: string;
+	message: string;
+	path: (string | number | symbol)[];
+}
+
+export class ValidationError extends Error {
+	public issues: ValidationIssue[];
+	constructor(issues: ValidationIssue[]) {
+		super('Invalid options');
+		this.name = 'ValidationError';
+		this.issues = issues;
+		Object.setPrototypeOf(this, ValidationError.prototype);
+	}
+}
 
 /**
  * Validate the provided flags all work with each other.
@@ -15,7 +30,15 @@ import {
 export async function processOptions(
 	optionsRaw: unknown,
 ): Promise<InternalCheckOptions> {
-	const options = await InternalCheckOptionsSchema.parseAsync(optionsRaw);
+	const {
+		success,
+		data: options,
+		error,
+	} = await InternalCheckOptionsSchema.safeParseAsync(optionsRaw);
+
+	if (!success) {
+		throw new ValidationError(error.issues);
+	}
 
 	// Ensure we do not mix http:// and file system paths.  The paths passed in
 	// must all be filesystem paths, or HTTP paths.
