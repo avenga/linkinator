@@ -7,12 +7,8 @@ import { hideBin } from 'yargs/helpers';
 import { getConfig } from './config.ts';
 import { LinkChecker } from './index.ts';
 import { Format, LogLevel, Logger } from './logger.ts';
-import {
-	type CheckOptions,
-	DEFAULT_OPTIONS,
-	type Flags,
-	FlagsSchema,
-} from './schema.ts';
+import { DEFAULT_OPTIONS } from './options.ts';
+import { type CheckOptions, type Flags, FlagsSchema } from './schema.ts';
 import {
 	type CrawlResult,
 	type LinkResult,

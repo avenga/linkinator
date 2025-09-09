@@ -1,20 +1,5 @@
 import { z } from 'zod';
-
-export const DEFAULT_OPTIONS = {
-	concurrency: 100,
-	directoryListing: false,
-	extraHeaders: {},
-	retry: false,
-	retryErrors: false,
-	retryErrorsCount: 5,
-	retryErrorsJitter: 5000,
-	retryNoHeader: false,
-	retryNoHeaderCount: -1,
-	retryNoHeaderDelay: 30 * 60 * 1000,
-	timeout: 20000,
-	userAgent:
-		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36',
-} satisfies Partial<CheckOptions>;
+import { DEFAULT_OPTIONS } from './options.ts';
 
 // Common schema for CLI, config file and API
 export const CommonOptionsSchema = z.object({

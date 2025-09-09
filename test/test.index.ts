@@ -8,7 +8,7 @@ import {
 	LinkState,
 	check,
 } from '../src/index.js';
-import { DEFAULT_OPTIONS } from '../src/schema.ts';
+import { DEFAULT_OPTIONS } from '../src/options.ts';
 import { invertedPromise } from './utils.ts';
 
 nock.disableNetConnect();
