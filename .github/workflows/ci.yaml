@@ -117,30 +117,39 @@ jobs:
           name: binaries-macos-unsigned
           path: binaries
       - run: ls -alh binaries
-      - name: Sign macOS x64 binary
-        uses: lando/code-sign-action@a5703d3b5486ada6e8efd08912110f8756e873e8 # v3.0.0
+      - name: Import Apple Developer ID certificate
+        uses: apple-actions/import-codesign-certs@95e84a1a18f2bdbc5c6ab9b7f4429372e4b13a8b # v5.0.3
         with:
-          file: binaries/linkinator-darwin-x64
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-          certificate-data: ${{ secrets.APPLE_CERT_DATA }}
-          certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
-          options: --options runtime --entitlements ci/entitlements.plist
-          # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
-          # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          # apple-notary-tool: altool
-          # apple-product-id: dev.lando.code-sign-action
-      - name: Sign macOS arm64 binary
-        uses: lando/code-sign-action@a5703d3b5486ada6e8efd08912110f8756e873e8 # v3.0.0
-        with:
-          file: binaries/linkinator-darwin-arm64
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-          certificate-data: ${{ secrets.APPLE_CERT_DATA }}
-          certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
-          options: --options runtime --entitlements ci/entitlements.plist
-          # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
-          # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          # apple-notary-tool: altool
-          # apple-product-id: dev.lando.code-sign-action
+          p12-file-base64: ${{ secrets.APPLE_CERT_DATA }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+      - name: Sign macOS binaries
+        run: |
+          codesign --deep --force --sign "${{ secrets.APPLE_TEAM_ID }}" --entitlements ci/entitlements.plist ./binaries/linkinator-darwin-x64
+          codesign --deep --force --sign "${{ secrets.APPLE_TEAM_ID }}" --entitlements ci/entitlements.plist ./binaries/linkinator-darwin-arm64
+      # - name: Sign macOS x64 binary
+      #   uses: lando/code-sign-action@a5703d3b5486ada6e8efd08912110f8756e873e8 # v3.0.0
+      #   with:
+      #     file: binaries/linkinator-darwin-x64
+      #     apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+      #     certificate-data: ${{ secrets.APPLE_CERT_DATA }}
+      #     certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+      #     options: --options runtime --entitlements ci/entitlements.plist
+      #     # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
+      #     # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+      #     # apple-notary-tool: altool
+      #     # apple-product-id: dev.lando.code-sign-action
+      # - name: Sign macOS arm64 binary
+      #   uses: lando/code-sign-action@a5703d3b5486ada6e8efd08912110f8756e873e8 # v3.0.0
+      #   with:
+      #     file: binaries/linkinator-darwin-arm64
+      #     apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+      #     certificate-data: ${{ secrets.APPLE_CERT_DATA }}
+      #     certificate-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+      #     options: --options runtime --entitlements ci/entitlements.plist
+      #     # apple-notary-user: ${{ secrets.APPLE_NOTARY_USER }}
+      #     # apple-notary-password: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+      #     # apple-notary-tool: altool
+      #     # apple-product-id: dev.lando.code-sign-action
       - run: ls -alh binaries
       - name: Upload signed macOS binaries
         uses: actions/upload-artifact@v4
