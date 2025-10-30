@@ -8,6 +8,7 @@ import {
 	LinkState,
 	check,
 } from '../src/index.js';
+import * as linksMethods from '../src/links.ts';
 import { DEFAULT_OPTIONS } from '../src/options.ts';
 import { invertedPromise } from './utils.ts';
 
@@ -627,6 +628,25 @@ describe('linkinator', () => {
 		});
 		assert.ok(results.passed);
 		scope.done();
+	});
+
+	it('should treat link as broken when getLinks throws', async () => {
+		const parseErr = new Error('Parsing failure');
+		const spy = vi.spyOn(linksMethods, 'getLinks').mockRejectedValue(parseErr);
+
+		const checker = new LinkChecker();
+		const results = await checker.check({
+			path: 'test/fixtures/basic',
+		});
+
+		assert.ok(!results.passed);
+		assert.strictEqual(results.links[0].state, LinkState.BROKEN);
+		assert.strictEqual(
+			(results.links[0]?.failureDetails?.[0] as Error).message,
+			'Parsing failure',
+		);
+
+		spy.mockRestore();
 	});
 
 	describe('element metadata', () => {
