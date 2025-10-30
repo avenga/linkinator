@@ -186,10 +186,22 @@ export class LinkChecker extends EventEmitter {
 
 		const state =
 			status >= 200 && status < 300 ? LinkState.OK : LinkState.BROKEN;
-		this.emitResult(opts, state, status, failures);
 
-		// Recurse if body is HTML and crawling is enabled
-		await this.maybeRecurse(opts, response);
+		if (state === LinkState.BROKEN) {
+			this.emitResult(opts, state, status, failures);
+			return;
+		}
+
+		try {
+			// Recurse if body is HTML and crawling is enabled
+			await this.maybeRecurse(opts, response);
+			this.emitResult(opts, state, status, failures);
+		} catch (error) {
+			// Report as a broken link when parsing body failed
+			this.emitResult(opts, LinkState.BROKEN, 0, [
+				{ cause: (error as Error).cause, message: (error as Error).message },
+			]);
+		}
 	}
 
 	// Perform fetch, handle retry on 429, collect failures

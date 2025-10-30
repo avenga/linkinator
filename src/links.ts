@@ -183,10 +183,14 @@ export async function getLinks(
 		},
 	});
 	await new Promise((resolve, reject) => {
-		Stream.Readable.fromWeb(source as import('stream/web').ReadableStream)
-			.pipe(parser)
-			.on('finish', resolve)
-			.on('error', reject);
+		const rs = Stream.Readable.fromWeb(
+			source as import('stream/web').ReadableStream,
+		);
+
+		// Reject on Readable error
+		rs.on('error', reject);
+
+		rs.pipe(parser).on('finish', resolve).on('error', reject);
 	});
 	return links;
 }
