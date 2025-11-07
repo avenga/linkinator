@@ -444,7 +444,7 @@ export class LinkChecker extends EventEmitter {
 		// If we need to go deeper, scan the next level of depth for links and crawl
 		this.emit('pagestart', options.url);
 
-		const urlResults = await getLinks(response, options.url.href);
+		const urlResults = await getLinks(response, options);
 
 		for (const result of urlResults) {
 			// If there was some sort of problem parsing the link while

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { CrawlOptions } from '../src/crawler.ts';
 import { getLinks } from '../src/links.js';
 
 describe('getLinks', () => {
@@ -12,11 +13,17 @@ describe('getLinks', () => {
 		const response = {
 			body,
 			headers: new Headers({ 'content-type': 'text/html' }),
+			clone: () => ({
+				text: () => '',
+			}),
 		} as unknown as Response;
 
 		// Expect getLinks to reject with our error,
-		await expect(getLinks(response, 'http://example.invalid')).rejects.toThrow(
-			'StreamError',
-		);
+		await expect(
+			getLinks(response, {
+				url: { href: 'http://example.invalid' },
+				checkOptions: {},
+			} as unknown as CrawlOptions),
+		).rejects.toThrow('StreamError');
 	});
 });

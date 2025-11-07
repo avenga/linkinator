@@ -172,6 +172,9 @@ $ linkinator LOCATIONS [ --arguments ]
     --user-agent
         The user agent passed in all HTTP requests. Defaults to 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36'
 
+    --body-regex
+        Regex string with exactly one capturing group to extract extra URLs from the response body.
+
     --verbosity
         Override the default verbosity for this command. Available options are
         'debug', 'info', 'warning', 'error', and 'none'.  Defaults to 'warning'.
@@ -284,6 +287,7 @@ where the server is started.  Defaults to the path passed in `path`.
 - `directoryListing` (boolean) - Automatically serve a static file listing page when serving a directory.  Defaults to `false`.
 - `urlRewriteExpressions` (array) - Collection of objects that contain a search pattern, and replacement.
 - `userAgent` (string) - The [user agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) that should be passed with each request. This uses a reasonable default.
+- `bodyRegex` (string) - Regex string with exactly one capturing group to extract extra URLs from the response body.
 
 ### linkinator.LinkChecker()
 
