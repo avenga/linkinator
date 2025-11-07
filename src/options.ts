@@ -20,6 +20,7 @@ export type SharedOptions = {
 	retryErrorsJitter?: number;
 	extraHeaders?: { [key: string]: string };
 	userAgent?: string;
+	bodyRegex?: string;
 };
 
 export type UrlRewriteExpression = {

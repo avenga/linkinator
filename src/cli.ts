@@ -129,6 +129,11 @@ const parser = yargs(hideBin(process.argv))
 			defaultDescription: DEFAULT_OPTIONS.userAgent.toString(),
 			describe: 'The user agent passed in all HTTP requests.',
 		},
+		bodyRegex: {
+			type: 'string',
+			describe:
+				'Regex string with exactly one capturing group to extract extra URLs from the response body.',
+		},
 		verbosity: {
 			type: 'string',
 			describe:

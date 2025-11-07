@@ -1,6 +1,7 @@
 import { Stream } from 'node:stream';
 import { WritableStream } from 'htmlparser2/WritableStream';
 import { parseSrcset } from 'srcset';
+import type { CrawlOptions } from './crawler.ts';
 import type { ElementMetadata } from './types.ts';
 import { isCSS } from './utils.ts';
 
@@ -50,11 +51,13 @@ export type ParsedUrl = {
 
 export async function getLinks(
 	response: Response,
-	baseUrl: string,
+	options: CrawlOptions,
 ): Promise<ParsedUrl[]> {
 	let source: ReadableStream;
+	const baseUrl = options.url.href;
 	let realBaseUrl = baseUrl;
 	let baseSet = false;
+	const bodyText = await response.clone().text();
 
 	if (!response.body) {
 		return [];
@@ -192,6 +195,16 @@ export async function getLinks(
 
 		rs.pipe(parser).on('finish', resolve).on('error', reject);
 	});
+
+	// Extract additional links from body via user-provided regex
+	const bodyRegex = options.checkOptions.bodyRegex;
+	if (bodyRegex && bodyText) {
+		const regex = new RegExp(bodyRegex, 'g');
+		for (const match of bodyText.matchAll(regex)) {
+			if (match[1]) links.push(parseLink(match[1], realBaseUrl));
+		}
+	}
+
 	return links;
 }
 

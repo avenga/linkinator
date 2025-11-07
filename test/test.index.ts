@@ -649,6 +649,92 @@ describe('linkinator', () => {
 		spy.mockRestore();
 	});
 
+	describe('bodyRegex', () => {
+		it('should find links via regex when provided', async () => {
+			const scope = nock('http://example.invalid')
+				.head('/')
+				.reply(200)
+				.head('/1')
+				.reply(200)
+				.head('/2')
+				.reply(200)
+				.head('/3')
+				.reply(200);
+			const results = await check({
+				path: 'test/fixtures/regex',
+				bodyRegex: '"link":"([^"]+)"',
+			});
+			assert.ok(results.passed);
+			assert.strictEqual(results.links.length, 5);
+			scope.done();
+		});
+
+		it('should handle non-matching regex', async () => {
+			const scope = nock('http://example.invalid').head('/').reply(200);
+			const results = await check({
+				path: 'test/fixtures/regex',
+				bodyRegex: '"abc":"([^"]+)"',
+			});
+			assert.ok(results.passed);
+			assert.strictEqual(results.links.length, 2);
+			scope.done();
+		});
+
+		it('should handle duplicate regex matches', async () => {
+			const scope = nock('http://example.invalid')
+				.head('/')
+				.reply(200)
+				.head('/1')
+				.reply(200);
+			const results = await check({
+				path: 'test/fixtures/regexDuplicate',
+				bodyRegex: '"link":"([^"]+)"',
+			});
+			assert.ok(results.passed);
+			assert.strictEqual(results.links.length, 3);
+			scope.done();
+		});
+
+		it('should ignore links in body when no regex provided', async () => {
+			const scope = nock('http://example.invalid').head('/').reply(200);
+			const results = await check({ path: 'test/fixtures/regex' });
+			assert.ok(results.passed);
+			assert.strictEqual(results.links.length, 2);
+			scope.done();
+		});
+
+		it('should handle invalid URLs matched by regex', async () => {
+			const scope = nock('http://example.invalid').head('/1').reply(200);
+			const results = await check({
+				path: 'test/fixtures/regexInvalid',
+				bodyRegex: '"link":"([^"]+)"',
+			});
+			assert.ok(!results.passed);
+			assert.strictEqual(results.links.length, 3);
+			assert.ok(results.links[2].url.endsWith('/abc'));
+			assert.strictEqual(results.links[2].state, 'BROKEN');
+			scope.done();
+		});
+
+		it('should get specific links by regex', async () => {
+			const scope = nock('http://example.invalid')
+				.head('/')
+				.reply(200)
+				.head('/1')
+				.reply(200)
+				.head('/3')
+				.reply(200);
+			const results = await check({
+				path: 'test/fixtures/regex',
+				bodyRegex:
+					'"link":"(https?://(?:example.invalid/1|example.invalid/3)[^"]*)"',
+			});
+			assert.ok(results.passed);
+			assert.strictEqual(results.links.length, 4);
+			scope.done();
+		});
+	});
+
 	describe('element metadata', () => {
 		it('should provide <a> text in results', async () => {
 			const scope = nock('http://example.invalid').head('/').reply(404);
